@@ -1,0 +1,76 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as Stream from 'stream';
+import { exec, spawn } from 'node:child_process';
+import { promisify } from 'node:util';
+import { HELPER_DIRS } from '../helperDirs';
+import { CommitCsvRow } from '../output/CommitCSV';
+
+const execAsync = promisify(exec);
+
+type CollectCommitOptions = {
+  organisation: string;
+  repository: string;
+  githubToken: string;
+  githubServer: string;
+  since?: string;
+  until?: string;
+}
+
+const collectGitCommits = async (options: CollectCommitOptions, targetStream: Stream.Readable) => {
+    const repoPath = path.resolve(HELPER_DIRS.gitRepoTarget, options.repository);
+
+    try {
+      await execAsync(`git clone --filter=blob:none --no-checkout https://${options.githubToken}@${options.githubServer}/${options.organisation}/${options.repository}.git ${repoPath}`);
+    } catch(err) {
+        if(err instanceof Error) {
+          const messageWithoutToken = err.message.replace(options.githubToken, '<REDACTED_TOKEN>');
+          throw Error(`Error while checking out repository: ${messageWithoutToken}`);
+        }
+      // todo: Handle Errors gracefully
+      throw err;
+    }
+
+    const commandOptions = [ 'log', '--pretty=format:%H,%aN,%aI,%cN,$cI', ];
+    if(options.since) commandOptions.push(`--since='${options.since}'`)
+    if(options.until) commandOptions.push(`--until='${options.until}'`)
+
+    const logCmd = spawn('git', commandOptions, { cwd: repoPath });
+    logCmd.stdout.on('data', function(data) {
+      const commitRows = data.toString().split('\n');
+      commitRows.forEach((commitRaw: string) => {
+        const [ commitSHA, commitAuthor, commitDate, committerName, committerDate ] = commitRaw.split(',');
+        const commit: CommitCsvRow = {
+          commitDate: commitDate ?? committerDate,
+          commitAuthor: commitAuthor ?? committerName ?? 'Unknown',
+          commitSHA,
+          repository: options.repository,
+          organisation: options.organisation
+        };
+        
+        if(!commit.commitDate) {
+          // todo: Warn about missing date
+          return;
+        };
+
+        targetStream.push(commit);
+      });
+    });
+
+    logCmd.stderr.on('data', (data) => {
+      console.error(`Error while reading logs:`, data.toString());
+      // todo: Handle Errors gracefully
+    });
+    
+    logCmd.on('exit', () => {
+      fs.promises.rm(repoPath, { recursive: true });
+    });
+}
+
+export {
+  collectGitCommits
+};
+
+export type {
+  CollectCommitOptions
+};

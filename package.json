@@ -1,0 +1,37 @@
+{
+  "name": "gh-metrics-collector",
+  "version": "1.0.0",
+  "description": "Collect Committer- and Pull-Request Metrics using the GitHub API without overflowing it.",
+  "main": "src/index.ts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsm src/index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davelosert/gh-metrics-collector.git"
+  },
+  "author": "David Losert <davelosert@github.com>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/davelosert/gh-metrics-collector/issues"
+  },
+  "homepage": "https://github.com/davelosert/gh-metrics-collector#readme",
+  "devDependencies": {
+    "@octokit/types": "^6.41.0",
+    "@tsconfig/node14": "1.0.3",
+    "@types/common-tags": "^1.8.1",
+    "@types/node": "^18.6.3",
+    "tsm": "2.2.2",
+    "typescript": "4.7.4"
+  },
+  "dependencies": {
+    "commander": "^9.4.0",
+    "common-tags": "^1.8.2",
+    "csv": "^6.2.0",
+    "date-fns": "^2.29.1",
+    "octokit": "^2.0.4"
+  }
+}
