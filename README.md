@@ -1,31 +1,48 @@
 # gh-metrics-collector
 
+> **Warning**
+> This project is still a work in progress and is not production ready yet! 
+
 Collect Github Committer- and Pull-Requests Metrics for entire GitHub Organisations and put them into a CSV.
 
 The metrics can then be put into PowerBI or Excel to produce some visualization to show the GitHub Activity or an enterprise or organisation.
 
 ## Usage
 
-### Use Binary
-
-Download one of the provided binaries that matches your os from the releases and then executei it like:
+Download the [binary from the assets of the latest release](https://github.com/davelosert/gh-metrics-collector/releases) that matches your target OS and then executei it like:
 
 ```shell
-GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector \
-  --organisation=<organisation> \
-  --output-dir=<output-folder-path> \
-  --before=<date> \
-  --after=<date>
+GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector --organisation=<organisation> 
 ```
 
-Let's say you want all metrics of the year 2021 for the `my-test-organisation` into the `./tmp` directory, you would execute:
+You have to provide a `$GITHUB_TOKEN` that has access to the target organisation. For more details, see [Required Permissions of Token](###required-permissions-of-token) below.
+
+### Options
+
+The following options can be specified:
+
+```shell
+  -V, --version                            output the version number
+  -o, --organisation <organisation>        The GitHub Organisation to collect metrics from.
+  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com (default:
+                                           "github.com")
+  -r, --repository <repository>            If this options is provided, metrics will only be collected for that single
+                                           repository. Good for a test run.
+  -s, --since                              Filter collected metrics to those that occured after this date.
+  -u, --until                              Filter collected metrics to those that occured before this date.
+  -h, --help                               display help for command
+```
+
+#### Example 
+
+Let's say you want all metrics of the year 2021 for the `my-test-organisation` of your GitHub Server instance `github.myenterprise.com` into the directory, you would execute:
 
 ```shell
 GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector \
-  --organisation=my-test-organisation \
-  --output-dir=tmp \
-  --since='2021-01-01' \
-  --until='2021-12-12'
+  --organisation my-test-organisation \
+  --github-server 'github.myenterprise.com'
+  --since '2021-01-01' \
+  --until '2021-12-12'
 ```
 
 ### Required Permissions of Token
@@ -56,11 +73,11 @@ Running this script will produce 3 files and contents:
 
 ### `commits.csv`
 
-Git Logs with the following fields:
+Contains all git logs of all Repositories (or the one specified with `--repository`) of the given Organisation with the following fields:
 
-- Author date (fallback to committer date if not available)
-- Author name (fallback to committer name if not available)
-- Commit SHA
+- Author date as `commitDate` (fallback to committer date if not available)
+- The Commit SHA
+- Author name as `commitAuthor` (fallback to committer name if not available)
 - Source Organisation
 - Source Repository
 
@@ -73,7 +90,11 @@ commitDate,commitSHA,commitAuthor,repository,organisation
 2022-07-26T11:25:24+02:00,f233688ad9dbbd14454f8781ea46aa91fd4088el,davelosert,mytestrepository,davelosert-org
 ```
 
+
 ### `pull-request.csv`
+
+> **Warning**
+> This feature is not implemented yet
 
 List of all relevant pull-request-dates and the state:
 
@@ -84,21 +105,11 @@ List of all relevant pull-request-dates and the state:
 
 ### `activity.csv`
 
+> **Warning**
+> This feature is not implemented yet
+
 tbd.
 
-## ProductMetrics
-
-- Pull Request Activity (Opened, Merged, Closed, Inactive) per Month
-- Time to Merge Pull Request
-- Absolute Number of Commits per Day
-- Absolute Number of Contributions (Commits, Comments, PRs) per Hour
-
-## Required Output Data
-
-- All **Commits** accross all **organizations**  accross all **repositories** with the fields:
-  - Created-at Date
-  - (optional) Commit-SHA to deduplicatge?
-  - (optional) Commit-Author to filter automation accounts?
 
 ### Todos
 
