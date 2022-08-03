@@ -5,12 +5,13 @@ import { exec, spawn } from 'node:child_process';
 import { promisify } from 'node:util';
 import { HELPER_DIRS } from '../helperDirs';
 import { CommitCsvRow } from '../output/CommitCSV';
+import { Repository } from '../Repository';
 
 const execAsync = promisify(exec);
 
 type CollectCommitOptions = {
   organisation: string;
-  repository: string;
+  repository: Repository;
   githubToken: string;
   githubServer: string;
   since?: string;
@@ -18,17 +19,13 @@ type CollectCommitOptions = {
 }
 
 const collectGitCommits = async (options: CollectCommitOptions, targetStream: Stream.Readable) => {
-    const repoPath = path.resolve(HELPER_DIRS.gitRepoTarget, options.repository);
+    const repoPath = path.resolve(HELPER_DIRS.gitRepoTarget, options.repository.name);
 
     try {
-      await execAsync(`git clone --filter=blob:none --no-checkout https://${options.githubToken}@${options.githubServer}/${options.organisation}/${options.repository}.git ${repoPath}`);
-    } catch(err) {
-        if(err instanceof Error) {
-          const messageWithoutToken = err.message.replace(options.githubToken, '<REDACTED_TOKEN>');
-          throw Error(`Error while checking out repository: ${messageWithoutToken}`);
-        }
-      // todo: Handle Errors gracefully
-      throw err;
+      await execAsync(`git clone --filter=blob:none --no-checkout https://${options.githubToken}@${options.githubServer}/${options.organisation}/${options.repository.name}.git ${repoPath}`);
+    } catch(err: any) {
+      console.error(`Error while checking out repository ${options.repository}: 
+      ${err.toString().replace(options.githubToken, '<REDACTED_TOKEN>')}`);
     }
 
     const commandOptions = [ 'log', '--pretty=format:%H,%aN,%aI,%cN,$cI', ];
@@ -44,12 +41,12 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
           commitDate: commitDate ?? committerDate,
           commitAuthor: commitAuthor ?? committerName ?? 'Unknown',
           commitSHA,
-          repository: options.repository,
+          repository: options.repository.name,
           organisation: options.organisation
         };
         
         if(!commit.commitDate) {
-          // todo: Warn about missing date
+          console.warn(`Found commit with SHA ${commitSHA} without a date in ${options.organisation}/${options.repository}. Skipping this commit...`);
           return;
         };
 
@@ -58,7 +55,7 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
     });
 
     logCmd.stderr.on('data', (data) => {
-      console.error(`Error while reading logs:`, data.toString());
+      console.error(`Error while reading logs for repository ${options.repository}:`, data.toString());
       // todo: Handle Errors gracefully
     });
     

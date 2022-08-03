@@ -3,6 +3,8 @@ import { program } from 'commander';
 import { createCSVStreamTo } from './output/CommitCSV';
 import { collectGitCommits } from './tasks/collectCommits';
 import { ProgramOptions, validateOptions } from './options';
+import { fetchAllRepositories, Repository } from './api/fetchAllRepositories';
+import { createOctokit } from './api/Octokit';
 
 const { GITHUB_TOKEN } = process.env;
 
@@ -25,13 +27,29 @@ const options = validateOptions(rawOptions);
 start(options, GITHUB_TOKEN);
 
 async function start(options: ProgramOptions, githubToken: string) {
-    const helperDirs = await createHelperDirs();
-    const commitTargetStream = await createCSVStreamTo(helperDirs.createTmpFilePath('commit.csv'));
+    const startTime = process.hrtime();
 
-    await collectGitCommits({
-      ...options,
-      // Todo: Fetch repositories from Organization if not provided
-      repository: options.repository!,
-      githubToken
-    }, commitTargetStream);
+    const helperDirs = await createHelperDirs();
+    const octokit = createOctokit({
+      githubToken,
+      githubServer: options.githubServer
+    });
+
+    const commitTargetStream = await createCSVStreamTo(helperDirs.createTmpFilePath('commit.csv'));
+    
+    const repos: Repository[] = options.repository ? 
+      [{ name: options.repository }] 
+      : await fetchAllRepositories({ octokit, organisation: options.organisation });
+    
+    for await (const repository of repos) {
+      console.log(`Getting commits for ${options.organisation}/${repository.name}`);
+      await collectGitCommits({
+        ...options,
+        repository,
+        githubToken
+      }, commitTargetStream);
+    }
+    
+    const [ processSeconds ] = process.hrtime(startTime);
+    console.log(`Script finisehd after ${processSeconds} seconds.`);
 }
