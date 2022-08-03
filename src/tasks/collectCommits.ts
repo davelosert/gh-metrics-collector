@@ -1,8 +1,8 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as Stream from 'stream';
-import { exec, spawn } from 'node:child_process';
-import { promisify } from 'node:util';
+import { exec, spawn } from 'child_process';
+import { promisify } from 'util';
 import { HELPER_DIRS } from '../helperDirs';
 import { CommitCsvRow } from '../output/CommitCSV';
 import { Repository } from '../Repository';

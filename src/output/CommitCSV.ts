@@ -1,5 +1,5 @@
 import { stringify} from 'csv';
-import * as fs from 'node:fs';
+import * as fs from 'fs';
 import * as Stream from 'stream';
 
 type CommitCsvRow = {

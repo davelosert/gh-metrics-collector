@@ -4,8 +4,14 @@
   "description": "Collect Committer- and Pull-Request Metrics using the GitHub API without overflowing it.",
   "main": "src/index.ts",
   "private": true,
-  "type": "module",
   "scripts": {
+    "bundle": "ncc build src/index.ts -o runtime",
+    "build-exe-all": "npm run clean && npm run bundle && npm run build-exe-linux-x64 && npm run build-exe-mac-x64 && npm run build-exe-windows-x64",
+    "clean": "rimraf dist runtime bin",
+    "pre-build-exe": "npm run build && npm run bundle",
+    "build-exe-linux-x64": "nexe -i runtime/index.js -t linux-x64-14.15.3 -o bin/gh-metrics-collector",
+    "build-exe-mac-x64": "nexe -i runtime/index.js -t mac-x64-14.15.3 -o bin/gh-metrics-collector-mac-x64",
+    "build-exe-windows-x64": "nexe -i runtime/index.js -t windows-x64-14.15.3 -o bin/gh-metrics-collector-win-x64",
     "start": "tsm src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -24,6 +30,9 @@
     "@tsconfig/node14": "1.0.3",
     "@types/common-tags": "1.8.1",
     "@types/node": "18.6.3",
+    "@vercel/ncc": "0.34.0",
+    "nexe": "4.0.0-rc.1",
+    "rimraf": "^3.0.2",
     "tsm": "2.2.2",
     "typescript": "4.7.4"
   },

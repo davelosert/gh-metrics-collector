@@ -43,6 +43,13 @@ read -s GITHUB_TOKEN
 ## Pase the token and hit <enter>
 ```
 
+### Rate Limits and timings
+
+As the data to receive via API Calls can become quite large, the tool will respect the GitHub API Rate Limits for [Cloud](https://docs.github.com/en/developers/apps/building-github-apps/rate-limits-for-github-apps) and [Server](https://docs.github.com/en/enterprise-server@3.5/developers/apps/building-github-apps/rate-limits-for-github-apps) and pause execution if they are exceeded until they reset (usually after 1 hour).
+
+> **Note**:
+> Both, the high amount of data as well as rate limiting can make this script take a while to run - up to hours.
+
 ## Produced Data
 
 Running this script will produce 3 files and contents:
@@ -56,6 +63,15 @@ Git Logs with the following fields:
 - Commit SHA
 - Source Organisation
 - Source Repository
+
+Example:
+
+```csv
+commitDate,commitSHA,commitAuthor,repository,organisation
+2022-08-03T09:36:35+02:00,972004f210294b7e6d7d506a6ecb28686e6d2608,davelosert,Test-Repo-1,davelosert-org
+2022-08-03T09:36:23+02:00,deb792f76bfd0cacae6016ba84daae19e9806ab2,davelosert,Test-Repo-1,davelosert-org
+2022-07-26T11:25:24+02:00,f233688ad9dbbd14454f8781ea46aa91fd4088el,davelosert,mytestrepository,davelosert-org
+```
 
 ### `pull-request.csv`
 
@@ -95,4 +111,4 @@ tbd.
 - [ ] Calculate the remaning time (use the response times to create an average and multply with pages remaning)
 - [ ] Allow controlling the concurrency as well as throughput with two variables:
   - [ ] concurrency: How many repositories to query in parallel
-  - [ ] trhoughput: Maximum amount of time to query the API in one second
+  - [ ] throughput: Maximum amount of time to query the API in one second
