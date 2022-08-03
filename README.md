@@ -4,7 +4,6 @@
 > This project is still a work in progress and is not production ready yet! 
 
 Collect Github Committer- and Pull-Requests Metrics for entire GitHub Organisations and put them into a CSV.
-
 The metrics can then be put into PowerBI or Excel to produce some visualization to show the GitHub Activity or an enterprise or organisation.
 
 ## Usage
@@ -15,7 +14,7 @@ Download the [binary from the assets of the latest release](https://github.com/d
 GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector --organisation=<organisation> 
 ```
 
-You have to provide a `$GITHUB_TOKEN` that has access to the target organisation. For more details, see [Required Permissions of Token](###required-permissions-of-token) below.
+You have to provide a `$GITHUB_TOKEN` that has access to the target organisation. For more details, see [Required Permissions of Token](#required-permissions-of-token) below.
 
 ### Options
 
@@ -35,7 +34,7 @@ The following options can be specified:
 
 #### Example 
 
-Let's say you want all metrics of the year 2021 for the `my-test-organisation` of your GitHub Server instance `github.myenterprise.com` into the directory, you would execute:
+To get all metrics of the year 2021 for the `my-test-organisation` of your GitHub Server instance `github.myenterprise.com` into the directory:
 
 ```shell
 GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector \
@@ -71,7 +70,7 @@ As the data to receive via API Calls can become quite large, the tool will respe
 
 Running this script will produce 3 files and contents:
 
-### `commits.csv`
+### commits.csv
 
 Contains all git logs of all Repositories (or the one specified with `--repository`) of the given Organisation with the following fields:
 
@@ -90,8 +89,9 @@ commitDate,commitSHA,commitAuthor,repository,organisation
 2022-07-26T11:25:24+02:00,f233688ad9dbbd14454f8781ea46aa91fd4088el,davelosert,mytestrepository,davelosert-org
 ```
 
+The logs are taken by cloning every repositor without it's contents (`git clone --filter=blob:none --no-checkout`) and then using `git log --all` to collect all logs-data.
 
-### `pull-request.csv`
+### pull-request.csv
 
 > **Warning**
 > This feature is not implemented yet
@@ -103,7 +103,7 @@ List of all relevant pull-request-dates and the state:
 - merged at
 - state (open, closed, merged)
 
-### `activity.csv`
+### activity.csv
 
 > **Warning**
 > This feature is not implemented yet
