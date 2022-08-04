@@ -36,22 +36,29 @@ async function start(options: ProgramOptions, githubToken: string) {
     });
 
     const csvFileName = createCommitCSVFileName();
-    const commitTargetStream = await createCSVStreamTo(helperDirs.createTmpFilePath(csvFileName));
+    const csvPath = helperDirs.createTmpFilePath(csvFileName);
+    const commitTargetStream = await createCSVStreamTo(csvPath);
     
     const repos: Repository[] = options.repository ? 
       [{ name: options.repository }] 
       : await fetchAllRepositories({ octokit, organisation: options.organisation });
     
+    console.log(`\nSTARTING COMMIT COLLECTION`);
+    console.log('------------')
+    let overallCommitCount = 0;
     for await (const repository of repos) {
       console.log(`Getting commits for ${options.organisation}/${repository.name}`);
-      await collectGitCommits({
+      const { commitsCount } = await collectGitCommits({
         ...options,
         repository,
         githubToken
       }, commitTargetStream);
+      
+      overallCommitCount += commitsCount;
     }
-    
-    console.log(`Wrote all commits to ${csvFileName}`);
+    console.log('------------')
+    console.log(`COMMIT COLLECTION FINISHED`);
+    console.log(`Wrote ${overallCommitCount} commits to ${csvPath}`);
     
     const [ processSeconds ] = process.hrtime(startTime);
     console.log(`Script finished after ${processSeconds} seconds.`);

@@ -46,6 +46,10 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
     logCmd.stdout.on('data', function(data) {
       const commitRows = data.toString().split('\n');
       commitRows.forEach((commitRaw: string) => {
+        
+        // Sometimes, empty lines sneak in
+        if(commitRaw === '') return;
+
         const [ commitSHA, commitAuthor, commitDate, committerName, committerDate ] = commitRaw.split(',');
         const commit: CommitCsvRow = {
           commitDate: commitDate ?? committerDate,
