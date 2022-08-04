@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { format } from 'date-fns';
 
 
 const tmpDir = path.resolve('.', 'tmp');
@@ -20,7 +21,15 @@ async function createHelperDirs() {
   }
 }
 
+const dateFormat = 'yyyy-MM-dd_HH-mm-ss';
+function createCommitCSVFileName() {
+  const dateString = format(new Date(), dateFormat);
+  return `commits_${dateString}.csv`;
+}
+
+
 export {
   HELPER_DIRS,
-  createHelperDirs
+  createHelperDirs,
+  createCommitCSVFileName
 };

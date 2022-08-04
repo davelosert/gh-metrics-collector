@@ -1,4 +1,4 @@
-import { createHelperDirs } from './helperDirs';
+import { createCommitCSVFileName, createHelperDirs } from './helperDirs';
 import { program } from 'commander';
 import { createCSVStreamTo } from './output/CommitCSV';
 import { collectGitCommits } from './tasks/collectCommits';
@@ -35,7 +35,8 @@ async function start(options: ProgramOptions, githubToken: string) {
       githubServer: options.githubServer
     });
 
-    const commitTargetStream = await createCSVStreamTo(helperDirs.createTmpFilePath('commit.csv'));
+    const csvFileName = createCommitCSVFileName();
+    const commitTargetStream = await createCSVStreamTo(helperDirs.createTmpFilePath(csvFileName));
     
     const repos: Repository[] = options.repository ? 
       [{ name: options.repository }] 
@@ -50,6 +51,8 @@ async function start(options: ProgramOptions, githubToken: string) {
       }, commitTargetStream);
     }
     
+    console.log(`Wrote all commits to ${csvFileName}`);
+    
     const [ processSeconds ] = process.hrtime(startTime);
-    console.log(`Script finisehd after ${processSeconds} seconds.`);
+    console.log(`Script finished after ${processSeconds} seconds.`);
 }
