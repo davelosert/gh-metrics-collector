@@ -17,8 +17,8 @@ program
   .requiredOption('-o, --organisation <organisation>', 'The GitHub Organisation to collect metrics from.')
   .option('-g, --github-server <github-server-url>', 'The GitHub Server to use (without protocol). Defaults to github.com', 'github.com')
   .option('-r, --repository <repository>', 'If this options is provided, metrics will only be collected for that single repository. Good for a test run.')
-  .option('-s, --since', 'Filter collected metrics to those that occured after this date.')
-  .option('-u, --until', 'Filter collected metrics to those that occured before this date.')
+  .option('-s, --since <since-date>', 'Filter collected metrics to those that occured after this date.')
+  .option('-u, --until <until-date>', 'Filter collected metrics to those that occured before this date.')
   .parse(process.argv);
 
 const rawOptions  = program.opts();
