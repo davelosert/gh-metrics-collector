@@ -1,7 +1,7 @@
 # gh-metrics-collector
 
 > **Warning**
-> This project is still a work in progress and is not production ready yet! 
+> This project is still a work in progress and is not production ready yet!
 
 Collect Github Committer- and Pull-Requests Metrics for entire GitHub Organisations and put them into a CSV.
 The metrics can then be put into PowerBI or Excel to produce some visualization to show the GitHub Activity or an enterprise or organisation.
@@ -32,7 +32,7 @@ The following options can be specified:
   -h, --help                               display help for command
 ```
 
-#### Example 
+#### Example
 
 To get all metrics of the year 2021 for the `my-test-organisation` of your GitHub Server instance `github.myenterprise.com` into the directory:
 
@@ -109,7 +109,6 @@ List of all relevant pull-request-dates and the state:
 > This feature is not implemented yet
 
 tbd.
-
 
 ### Todos
 
