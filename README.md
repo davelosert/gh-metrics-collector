@@ -8,7 +8,7 @@ The metrics can then be put into PowerBI or Excel to produce some visualization 
 
 ## Usage
 
-Download the [binary from the assets of the latest release](https://github.com/davelosert/gh-metrics-collector/releases) that matches your target OS and then executei it like:
+Download the [binary from the assets of the latest release](https://github.com/davelosert/gh-metrics-collector/releases) that matches your target OS and then execute it like this:
 
 ```shell
 GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector --organisation=<organisation> 
@@ -25,12 +25,10 @@ The following options can be specified:
 ```shell
   -V, --version                            output the version number
   -o, --organisation <organisation>        The GitHub Organisation to collect metrics from.
-  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com (default:
-                                           "github.com")
-  -r, --repository <repository>            If this options is provided, metrics will only be collected for that single
-                                           repository. Good for a test run.
-  -s, --since                              Filter collected metrics to those that occured after this date.
-  -u, --until                              Filter collected metrics to those that occured before this date.
+  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com (default: "github.com")
+  -r, --repository <repository>            If this options is provided, metrics will only be collected for that single repository. Good for a test run.
+  -s, --since <since-date>                 Filter collected metrics to those that occured after this date.
+  -u, --until <until-date>                 Filter collected metrics to those that occured before this date.
   -h, --help                               display help for command
 ```
 
