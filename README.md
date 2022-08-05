@@ -39,7 +39,7 @@ To get all metrics of the year 2021 for the `my-test-organisation` of your GitHu
 ```shell
 GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector \
   --organisation my-test-organisation \
-  --github-server 'github.myenterprise.com'
+  --github-server 'github.myenterprise.com' \
   --since '2021-01-01' \
   --until '2021-12-12'
 ```
