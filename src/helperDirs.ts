@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'date-fns';
 
-
 const tmpDir = path.resolve('.', 'tmp');
 const gitRepoTarget = path.resolve(tmpDir, 'repos');
 
@@ -11,7 +10,11 @@ const HELPER_DIRS = {
   gitRepoTarget
 };
 
-async function createHelperDirs() {
+interface DirHelper {
+  createTmpFilePath(fileName: string): string;
+};
+
+async function createHelperDirs(): Promise<DirHelper> {
   for(const helperDirPath of Object.values(HELPER_DIRS)) {
     await fs.promises.mkdir(helperDirPath, { recursive: true });
   }
@@ -32,4 +35,8 @@ export {
   HELPER_DIRS,
   createHelperDirs,
   createCommitCSVFileName
+};
+
+export type {
+  DirHelper
 };

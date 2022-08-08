@@ -1,10 +1,11 @@
-import { createCommitCSVFileName, createHelperDirs } from './helperDirs';
+import { createCommitCSVFileName, createHelperDirs, DirHelper } from './helperDirs';
 import { program } from 'commander';
-import { createCSVStreamTo } from './output/CommitCSV';
+import { createCommitCSVStream } from './output/CommitCSV';
 import { collectGitCommits } from './tasks/collectCommits';
 import { ProgramOptions, validateOptions } from './options';
 import { fetchAllRepositories, Repository } from './api/fetchAllRepositories';
 import { createOctokit } from './api/Octokit';
+import { Octokit } from 'octokit';
 
 const { GITHUB_TOKEN } = process.env;
 
@@ -35,13 +36,21 @@ async function start(options: ProgramOptions, githubToken: string) {
       githubServer: options.githubServer
     });
 
-    const csvFileName = createCommitCSVFileName();
-    const csvPath = helperDirs.createTmpFilePath(csvFileName);
-    const commitTargetStream = await createCSVStreamTo(csvPath);
-    
     const repos: Repository[] = options.repository ? 
       [{ name: options.repository }] 
       : await fetchAllRepositories({ octokit, organisation: options.organisation });
+
+    await startCommitCollection(octokit, helperDirs, githubToken, repos);
+    
+    const [ processSeconds ] = process.hrtime(startTime);
+    console.log(`Script finished after ${processSeconds} seconds.`);
+}
+
+async function startCommitCollection(octokit: Octokit, dirHelper: DirHelper, githubToken: string, repos: Repository[]) {
+    const csvFileName = createCommitCSVFileName();
+    const csvPath = dirHelper.createTmpFilePath(csvFileName);
+    const commitTargetStream = await createCommitCSVStream(csvPath);
+    
     
     console.log(`\nSTARTING COMMIT COLLECTION`);
     console.log('------------')
@@ -59,7 +68,4 @@ async function start(options: ProgramOptions, githubToken: string) {
     console.log('------------')
     console.log(`COMMIT COLLECTION FINISHED`);
     console.log(`Wrote ${overallCommitCount} commits to ${csvPath}`);
-    
-    const [ processSeconds ] = process.hrtime(startTime);
-    console.log(`Script finished after ${processSeconds} seconds.`);
 }

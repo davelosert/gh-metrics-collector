@@ -37,52 +37,52 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
     if(options.until) commandOptions.push(`--until='${options.until}'`)
 
     return new Promise<CollectCommitResults>((resolve, reject) => {
-    const collectCommitResult = {
-      commitsCount: 0
-    };
-    
-    const logCmd = spawn('git', commandOptions, { cwd: repoPath });
-    
-    logCmd.stdout.on('data', function(data) {
-      const commitRows = data.toString().split('\n');
-      commitRows.forEach((commitRaw: string) => {
-        
-        // Sometimes, empty lines sneak in
-        if(commitRaw === '') return;
+      const collectCommitResult = {
+        commitsCount: 0
+      };
+      
+      const logCmd = spawn('git', commandOptions, { cwd: repoPath });
+      
+      logCmd.stdout.on('data', function(data) {
+        const commitRows = data.toString().split('\n');
+        commitRows.forEach((commitRaw: string) => {
+          
+          // Sometimes, empty lines sneak in
+          if(commitRaw === '') return;
 
-        const [ commitSHA, commitAuthor, commitDate, committerName, committerDate ] = commitRaw.split(',');
-        const commit: CommitCsvRow = {
-          commitDate: commitDate ?? committerDate,
-          commitAuthor: commitAuthor ?? committerName ?? 'Unknown',
-          commitSHA,
-          repository: options.repository.name,
-          organisation: options.organisation
-        };
-        
-        if(!commit.commitDate) {
-          console.warn(`
-            Found commit with SHA ${commitSHA} without a date in ${options.organisation}/${options.repository.name}. ${JSON.stringify(commitRaw, null, 2)}` );
-          return;
-        };
+          const [ commitSHA, commitAuthor, commitDate, committerName, committerDate ] = commitRaw.split(',');
+          const commit: CommitCsvRow = {
+            commitDate: commitDate ?? committerDate,
+            commitAuthor: commitAuthor ?? committerName ?? 'Unknown',
+            commitSHA,
+            repository: options.repository.name,
+            organisation: options.organisation
+          };
+          
+          if(!commit.commitDate) {
+            console.warn(`
+              Found commit with SHA ${commitSHA} without a date in ${options.organisation}/${options.repository.name}. ${JSON.stringify(commitRaw, null, 2)}` );
+            return;
+          };
 
-        collectCommitResult.commitsCount += 1;
-        targetStream.push(commit);
+          collectCommitResult.commitsCount += 1;
+          targetStream.push(commit);
+        });
+      });
+
+      logCmd.stderr.on('data', (data) => {
+        console.error(`Error while reading logs for repository ${options.repository.name}:`, data.toString());
+        console.error(`Skipping reading furhter logs on this repository...`);
+        // todo: Handle Errors gracefully
+        resolve(collectCommitResult);
+      });
+      
+      logCmd.on('close', async () => {
+        console.log(`Added ${collectCommitResult.commitsCount} commits from ${options.organisation}/${options.repository.name}.`);
+        await fs.promises.rm(repoPath, { recursive: true });
+        resolve(collectCommitResult);
       });
     });
-
-    logCmd.stderr.on('data', (data) => {
-      console.error(`Error while reading logs for repository ${options.repository.name}:`, data.toString());
-      console.error(`Skipping reading furhter logs on this repository...`);
-      // todo: Handle Errors gracefully
-      resolve(collectCommitResult);
-    });
-    
-    logCmd.on('close', () => {
-      console.log(`Added ${collectCommitResult.commitsCount} commits from ${options.organisation}/${options.repository.name}.`);
-      fs.promises.rm(repoPath, { recursive: true });
-      resolve(collectCommitResult);
-    });
-  });
 }
 
 export {
