@@ -25,16 +25,16 @@ async function createHelperDirs(): Promise<DirHelper> {
 }
 
 const dateFormat = 'yyyy-MM-dd_HH-mm-ss';
-function createCommitCSVFileName() {
+function createDateCSVName(csvType: 'commits' | 'pullRequests'): string {
   const dateString = format(new Date(), dateFormat);
-  return `commits_${dateString}.csv`;
+  return `${csvType}_${dateString}.csv`;
 }
 
 
 export {
   HELPER_DIRS,
   createHelperDirs,
-  createCommitCSVFileName
+  createDateCSVName
 };
 
 export type {

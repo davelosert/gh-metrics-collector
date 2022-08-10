@@ -25,10 +25,17 @@ The following options can be specified:
 ```shell
   -V, --version                            output the version number
   -o, --organisation <organisation>        The GitHub Organisation to collect metrics from.
-  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com (default: "github.com")
-  -r, --repository <repository>            If this options is provided, metrics will only be collected for that single repository. Good for a test run.
+  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com (default:
+                                           "github.com")
+  -r, --repository <repository>            If this options is provided, metrics will only be collected for that single
+                                           repository. Good for a test run.
   -s, --since <since-date>                 Filter collected metrics to those that occured after this date.
   -u, --until <until-date>                 Filter collected metrics to those that occured before this date.
+  -t, --tasks [tasks...]                   The different collection tasks you want to run. Possible tasks are "commits" and
+                                           "prs". Specify multiple by separating them with a space. Default to all tasks.
+                                           (default: ["commits","prs"])
+  -c, --concurrency <concurrency>          The number of concurrent tasks to schedule. Mainly used to speed up things while not
+                                           overloading the GitHub API. Defaults to 5. (default: "5")
   -h, --help                               display help for command
 ```
 
@@ -61,14 +68,20 @@ read -s GITHUB_TOKEN
 
 ### Rate Limits and timings
 
-As the data to receive via API Calls can become quite large, the tool will respect the GitHub API Rate Limits for [Cloud](https://docs.github.com/en/developers/apps/building-github-apps/rate-limits-for-github-apps) and [Server](https://docs.github.com/en/enterprise-server@3.5/developers/apps/building-github-apps/rate-limits-for-github-apps) and pause execution if they are exceeded until they reset (usually after 1 hour).
+As the data to receive via API Calls can become quite large, the tool will respect the GitHub API Rate Limits for [Cloud](https://docs.github.com/en/developers/apps/building-github-apps/rate-limits-for-github-apps) and [Server](https://docs.github.com/en/enterprise-server@3.5/developers/apps/building-github-apps/rate-limits-for-github-apps). This means it will throttle API Calls as well as pause execution if rate-limits are exceeded until they reset (usually after 1 hour).
 
 > **Note**:
-> Both, the high amount of data as well as rate limiting can make this script take a while to run - up to hours.
+> Due to the high amount API calls to make, the throttling as well as respecting rate limits, this sciprt might take several hours to complete.
 
 ## Produced Data
 
-Running this script will produce 3 files and contents:
+Running this script will produce data for `commits` as well as `pull-requests` into 2 files and contents shown below.
+
+You can limit it to either by using the `--tasks` flag, e.g. to only collect `pull-requests`:
+
+```shell
+GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector --tasks prs --organisation my-test-organisation
+```
 
 ### commits.csv
 
@@ -94,31 +107,31 @@ The logs are taken by cloning every repository without its contents (`git clone 
 ### pull-request.csv
 
 > **Warning**
-> This feature is not implemented yet
+> This feature currently does not respect the --since and --until options and just fetch all PRs of a repository.
 
 List of all relevant pull-request-dates and the state:
 
-- created at
-- closed at
-- merged at
-- state (open, closed, merged)
-
-### activity.csv
-
-> **Warning**
-> This feature is not implemented yet
-
-tbd.
+- createdAt
+- updatedAt
+- closedAt
+- mergedAt
+- *(planned) inactiveAt*
 
 ### Todos
 
-- [ ] Implement collecting Pull Requsts
-- [ ] Implement collecting Acitivies
+- [x] Implement collecting Pull Requsts
+- [ ] Make Pull Request respect the `--since` and `--until` options (currently fetches everything)
+- [ ] Add an `inactiveAt` field to the prs as this information does not come from the API, but needs to be calculated
 - [ ] Implement State Updates and better logging
 - [ ] Provide input Data through JSON (Server baseUrl, output path)
 - [ ] Save Pagination (and other?) state to pick up the migration later `--continue <stateFile>`
 - [ ] Have `--dry-run` - only count the organizations and commit objects (if possible)
 - [ ] Calculate the remaning time (use the response times to create an average and multply with pages remaning)
 - [ ] Allow controlling the concurrency as well as throughput with two variables:
-  - [ ] concurrency: How many repositories to query in parallel
+  - [x] concurrency: How many repositories to query in parallel
   - [ ] throughput: Maximum amount of time to query the API in one second
+
+### PR is counted as becoming inactive for a month when
+
+- updatedAt > currentMonth + 1
+- closedAt / mergedAt === null (still inactive) || > updatedAt + 30

@@ -41,6 +41,7 @@
     "common-tags": "1.8.2",
     "csv": "6.2.0",
     "date-fns": "2.29.1",
-    "octokit": "2.0.4"
+    "octokit": "2.0.4",
+    "p-queue": "^7.3.0"
   }
 }
