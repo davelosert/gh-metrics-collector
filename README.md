@@ -25,17 +25,18 @@ The following options can be specified:
 ```shell
   -V, --version                            output the version number
   -o, --organisation <organisation>        The GitHub Organisation to collect metrics from.
-  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com (default:
-                                           "github.com")
+  -g, --github-server <github-server-url>  The GitHub Server to use (without protocol). Defaults to github.com
+                                           (default: "github.com")
   -r, --repository <repository>            If this options is provided, metrics will only be collected for that single
                                            repository. Good for a test run.
   -s, --since <since-date>                 Filter collected metrics to those that occured after this date.
   -u, --until <until-date>                 Filter collected metrics to those that occured before this date.
-  -t, --tasks [tasks...]                   The different collection tasks you want to run. Possible tasks are "commits" and
-                                           "prs". Specify multiple by separating them with a space. Default to all tasks.
-                                           (default: ["commits","prs"])
-  -c, --concurrency <concurrency>          The number of concurrent tasks to schedule. Mainly used to speed up things while not
-                                           overloading the GitHub API. Defaults to 5. (default: "5")
+  -t, --tasks [tasks...]                   The different collection tasks you want to run. Possible tasks are "commits"
+                                           and "prs". Specify multiple by separating them with a space. Default to all
+                                           tasks. (default: ["commits","prs"])
+  -c, --concurrency <concurrency>          The number of concurrent tasks to schedule. Mainly used to speed up things
+                                           while not overloading the GitHub API. (default: "5")
+  -v, --verbose                            Enable debug logging output. (default: false)
   -h, --help                               display help for command
 ```
 

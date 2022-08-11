@@ -27,7 +27,7 @@ program
   .option('-s, --since <since-date>', 'Filter collected metrics to those that occured after this date.')
   .option('-u, --until <until-date>', 'Filter collected metrics to those that occured before this date.')
   .option('-t, --tasks [tasks...]', 'The different collection tasks you want to run. Possible tasks are "commits" and "prs". Specify multiple by separating them with a space. Default to all tasks.', ['commits', 'prs'] )
-  .option('-c, --concurrency <concurrency>', 'The number of concurrent tasks to schedule. Mainly used to speed up things while not overloading the GitHub API. Defaults to 5.', '5')
+  .option('-c, --concurrency <concurrency>', 'The number of concurrent tasks to schedule. Mainly used to speed up things while not overloading the GitHub API.', '5')
   .option('-v, --verbose', 'Enable debug logging output.', false)
 
   .parse(process.argv);
