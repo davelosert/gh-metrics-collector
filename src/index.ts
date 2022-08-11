@@ -9,6 +9,9 @@ import { Octokit } from 'octokit';
 import { collectPullRequests } from './tasks/collectPullRequests';
 import { createPullRequestCSVStream } from './output/PullRequestCSV';
 import PQueue from 'p-queue';
+import { createTaskLogger } from './TaskLogger';
+import { createMigrationStateHandler, MigrationStateHandler } from './MigrationStateHandler';
+import { RepositoryIdentifier } from './Repository';
 
 const { GITHUB_TOKEN } = process.env;
 
@@ -34,7 +37,7 @@ const options = validateOptions(rawOptions);
 start(options, GITHUB_TOKEN);
 
 async function start(options: ProgramOptions, githubToken: string) {
-    const startTime = process.hrtime();
+    const stateHandler = createMigrationStateHandler();
 
     const helperDirs = await createHelperDirs();
     const octokit = createOctokit({
@@ -42,78 +45,77 @@ async function start(options: ProgramOptions, githubToken: string) {
       githubServer: options.githubServer
     });
 
-    const repos: Repository[] = options.repository ? 
-      [{ name: options.repository }] 
+    const repos: RepositoryIdentifier[] = options.repository ? 
+      [{ name: options.repository, organisation: options.organisation }] 
       : await fetchAllRepositories({ octokit, organisation: options.organisation });
-
+      
+    stateHandler.addRepositories(repos);
+      
     if(options.tasks.includes('commits')) {
-      await startCommitCollection(octokit, helperDirs, githubToken, repos);
+      await startCommitCollection({ octokit, dirHelper: helperDirs, githubToken, repos, stateHandler });
     }
-    
+
     if(options.tasks.includes('prs')) {
-      await startPrCollection(octokit, helperDirs, repos);
+      await startPrCollection({ octokit, dirHelper: helperDirs, repos, stateHandler });
     }
-    
-    const [ processSeconds ] = process.hrtime(startTime);
-    console.log(`Script finished after ${processSeconds} seconds.`);
+
+    stateHandler.reportScriptDone();
 }
 
-async function startCommitCollection(octokit: Octokit, dirHelper: DirHelper, githubToken: string, repos: Repository[]) {
+async function startCommitCollection(
+  { octokit, dirHelper, githubToken, repos, stateHandler }: 
+  { octokit: Octokit; dirHelper: DirHelper; githubToken: string; repos: RepositoryIdentifier[]; stateHandler: MigrationStateHandler }) {
     const csvFileName = createDateCSVName('commits');
     const csvPath = dirHelper.createTmpFilePath(csvFileName);
     const commitTargetStream = await createCommitCSVStream(csvPath);
     const queue = new PQueue({ concurrency: options.concurrency });
 
-    console.log(`\nSTARTING COMMIT COLLECTION`);
-    console.log('------------')
-    let overallCommitCount = 0;
-    
+    stateHandler.reportTaskStart('commits', csvPath);
     const preparedFns = repos.map(repository => {
+        const logger = createTaskLogger(repository);
         return async () => {
-          console.log(`Getting commits for ${options.organisation}/${repository.name}.`);
+          stateHandler.reportRepoStart('commits', repository);
           const { commitsCount } = await collectGitCommits({
             ...options,
             repository,
-            githubToken
+            githubToken,
+            logger
           }, commitTargetStream);
-          
-          overallCommitCount += commitsCount;
+          stateHandler.reportRepoDone('commits', repository, commitsCount);
         };
     });
     queue.addAll(preparedFns);
-    
-    await queue.onIdle();
 
-    console.log('------------')
-    console.log(`COMMIT COLLECTION FINISHED`);
-    console.log(`Wrote ${overallCommitCount} commits to ${csvPath}`);
+    await queue.onIdle();
+    stateHandler.reportTaskDone('commits');
 }
 
-async function startPrCollection(octokit: Octokit, dirHelper: DirHelper, repos: Repository[]) {
+async function startPrCollection(
+  { octokit, dirHelper, repos, stateHandler }: 
+  { octokit: Octokit; dirHelper: DirHelper; repos: RepositoryIdentifier[]; stateHandler: MigrationStateHandler }) {
   const csvFileName = createDateCSVName('pullRequests');
   const csvPath = dirHelper.createTmpFilePath(csvFileName);
   const prTargetStream = await createPullRequestCSVStream(csvPath);
   const queue = new PQueue({ concurrency: options.concurrency });
+  
+  stateHandler.reportTaskStart('prs', csvPath)
 
-  console.log(`\nSTARTING PULL-REQUEST COLLECTION`);
-  console.log('------------')
-  let overallPrCount = 0;
   const preparedFns = repos.map(repository => {
       return async () => {
-        console.log(`Getting pull-requests for ${options.organisation}/${repository.name}.`);
-        const {pullRequestCount} = await collectPullRequests({
+        const logger = createTaskLogger(repository);
+        logger.log(`Starting Pull-Request Collection.`);
+        stateHandler.reportRepoStart('prs', repository);
+        const { pullRequestCount } = await collectPullRequests({
         octokit,
           organisation: options.organisation,
           repository
         }, prTargetStream);
-        overallPrCount += pullRequestCount;
+        stateHandler.reportRepoDone('prs', repository, pullRequestCount);
       }
   });
 
   queue.addAll(preparedFns);
 
   await queue.onIdle();
-  console.log('------------')
-  console.log(`PULL-REQUEST COLLECTION FINISHED`);
-  console.log(`Wrote ${overallPrCount} PRs to ${csvPath}`);
+  stateHandler.reportTaskDone('prs');
 }

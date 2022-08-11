@@ -24,5 +24,6 @@ export {
 }
 
 export type {
-  ProgramOptions
+  ProgramOptions,
+  Tasks
 };

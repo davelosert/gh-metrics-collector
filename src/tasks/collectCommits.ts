@@ -6,10 +6,12 @@ import { promisify } from 'util';
 import { HELPER_DIRS } from '../helperDirs';
 import { CommitCsvRow } from '../output/CommitCSV';
 import { Repository } from '../Repository';
+import { TaskLogger } from '../TaskLogger';
 
 const execAsync = promisify(exec);
 
 type CollectCommitOptions = {
+  logger: TaskLogger;
   organisation: string;
   repository: Repository;
   githubToken: string;
@@ -23,27 +25,28 @@ type CollectCommitResults = {
 };
 
 const collectGitCommits = async (options: CollectCommitOptions, targetStream: Stream.Readable): Promise<CollectCommitResults> => {
+    const {githubServer,githubToken,logger,organisation,repository,since,until} = options;
     const repoPath = path.resolve(HELPER_DIRS.gitRepoTarget, options.repository.name);
 
     try {
-      await execAsync(`git clone --filter=blob:none --no-checkout https://${options.githubToken}@${options.githubServer}/${options.organisation}/${options.repository.name}.git ${repoPath}`);
+      await execAsync(`git clone --filter=blob:none --no-checkout https://${githubToken}@${githubServer}/${organisation}/${repository.name}.git ${repoPath}`);
     } catch(err: any) {
       console.error(`Error while checking out repository ${options.repository.name}: 
       ${err.toString().replace(options.githubToken, '<REDACTED_TOKEN>')}`);
     }
 
     const commandOptions = [ 'log', '--pretty=format:%H,%aN,%aI,%cN,$cI', '--all'];
-    if(options.since) commandOptions.push(`--since='${options.since}'`)
-    if(options.until) commandOptions.push(`--until='${options.until}'`)
+    if(since) commandOptions.push(`--since='${since}'`)
+    if(until) commandOptions.push(`--until='${until}'`)
 
     return new Promise<CollectCommitResults>((resolve, reject) => {
       const collectCommitResult = {
         commitsCount: 0
       };
       
-      const logCmd = spawn('git', commandOptions, { cwd: repoPath });
+      const gitLogCmd = spawn('git', commandOptions, { cwd: repoPath });
       
-      logCmd.stdout.on('data', function(data) {
+      gitLogCmd.stdout.on('data', function(data) {
         const commitRows = data.toString().split('\n');
         commitRows.forEach((commitRaw: string) => {
           
@@ -60,8 +63,8 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
           };
           
           if(!commit.commitDate) {
-            console.warn(`
-              Found commit with SHA ${commitSHA} without a date in ${options.organisation}/${options.repository.name}. ${JSON.stringify(commitRaw, null, 2)}` );
+            logger.warn(`
+              Found commit with SHA ${commitSHA} without a date: ${JSON.stringify(commitRaw, null, 2)}` );
             return;
           };
 
@@ -70,15 +73,14 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
         });
       });
 
-      logCmd.stderr.on('data', (data) => {
-        console.error(`Error while reading logs for repository ${options.repository.name}:`, data.toString());
-        console.error(`Skipping reading furhter logs on this repository...`);
+      gitLogCmd.stderr.on('data', (data) => {
+        logger.error(`Error while reading logs for repository ${options.repository.name}:`, data.toString());
+        logger.error(`Skipping reading furhter logs on this repository...`);
         // todo: Handle Errors gracefully
         resolve(collectCommitResult);
       });
       
-      logCmd.on('close', async () => {
-        console.log(`Added ${collectCommitResult.commitsCount} commits from ${options.organisation}/${options.repository.name}.`);
+      gitLogCmd.on('close', async () => {
         await fs.promises.rm(repoPath, { recursive: true });
         resolve(collectCommitResult);
       });

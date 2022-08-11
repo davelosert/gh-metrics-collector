@@ -76,7 +76,7 @@ const collectPullRequests = async (options: CollectPullRequestOptions, targetStr
     continueFetching = result.repository.pullRequests.pageInfo.hasNextPage;
     nextCursor = result.repository.pullRequests.pageInfo.endCursor;
 
-    console.log(`[${options.organisation}/${options.repository.name}]: Fetched ${result.repository.pullRequests.nodes.length} PRs. Fetching next page: ${continueFetching}`);
+    // console.log(`[${options.organisation}/${options.repository.name}] Fetched ${result.repository.pullRequests.nodes.length} PRs. Fetching next page: ${continueFetching}`);
 
     // Todo: Filter out PRs not matchin dates of the since and until periods
     result.repository.pullRequests.nodes.forEach((result) => {
