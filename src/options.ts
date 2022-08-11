@@ -7,6 +7,7 @@ type ProgramOptions = {
   endDateString?: string,
   concurrency: number
   tasks: Tasks[];
+  verbose: boolean;
 };
 
 const validateOptions = (rawOptions: any): ProgramOptions => {

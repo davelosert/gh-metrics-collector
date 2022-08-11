@@ -1,17 +1,17 @@
+import { CommitCsvRow } from '../output/CommitCSV';
+import { exec, spawn } from 'child_process';
+import { HELPER_DIRS } from '../helperDirs';
+import { promisify } from 'util';
+import { Repository } from '../Repository';
+import { Logger } from '../TaskLogger';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Stream from 'stream';
-import { exec, spawn } from 'child_process';
-import { promisify } from 'util';
-import { HELPER_DIRS } from '../helperDirs';
-import { CommitCsvRow } from '../output/CommitCSV';
-import { Repository } from '../Repository';
-import { TaskLogger } from '../TaskLogger';
 
 const execAsync = promisify(exec);
 
 type CollectCommitOptions = {
-  logger: TaskLogger;
+  logger: Logger;
   organisation: string;
   repository: Repository;
   githubToken: string;
@@ -29,9 +29,10 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
     const repoPath = path.resolve(HELPER_DIRS.gitRepoTarget, options.repository.name);
 
     try {
+      logger.debug(`Cloning repo to ${repoPath}...`);
       await execAsync(`git clone --filter=blob:none --no-checkout https://${githubToken}@${githubServer}/${organisation}/${repository.name}.git ${repoPath}`);
     } catch(err: any) {
-      console.error(`Error while checking out repository ${options.repository.name}: 
+      logger.error(`Error while checking out repository ${options.repository.name}: 
       ${err.toString().replace(options.githubToken, '<REDACTED_TOKEN>')}`);
     }
 
@@ -44,6 +45,7 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
         commitsCount: 0
       };
       
+      logger.debug('Collecting Logs and streaming them to CSV...');
       const gitLogCmd = spawn('git', commandOptions, { cwd: repoPath });
       
       gitLogCmd.stdout.on('data', function(data) {

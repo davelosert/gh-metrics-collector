@@ -1,8 +1,10 @@
 import { Tasks } from './options';
+import { logger } from './TaskLogger';
 import { RepositoryIdentifier } from './Repository';
 
 interface MigrationStateHandler {
   addRepositories: (repoIds: RepositoryIdentifier[]) => void;
+  getAllTargetRepos: () => RepositoryIdentifier[];
   reportTaskStart: (task: Tasks, outputCSV: string) => void;
   reportRepoStart: (task: Tasks, repoId: RepositoryIdentifier) => void;
   reportRepoDone: (task: Tasks, repoId: RepositoryIdentifier, itemNumber: number) => void;
@@ -77,15 +79,18 @@ const createMigrationStateHandler = (): MigrationStateHandler => {
           }
         }
       }, {});
-      console.log(`Execution metrics-collection for ${repoIds.length} repositories.`);
+      logger.log(`Execution metrics-collection for ${repoIds.length} repositories.`);
+    },
+    getAllTargetRepos: (): RepositoryIdentifier[] => {
+      return Object.values(currentState.repoStates).map(repoState => repoState.repoId);
     },
     reportTaskStart: (task: Tasks, outputCSV: string) => {
       currentState.taskStates[task] = initialTaskState(outputCSV);
-      console.log(`\nSTARTING COLLECTION FOR ${task.toUpperCase()}`);
-      console.log('------------')
+      logger.log(`\nSTARTING COLLECTION FOR ${task.toUpperCase()}`);
+      logger.log('------------')
     },
     reportRepoStart(task, repoId) {
-      console.log(`[${repoId.organisation}/${repoId.name}] Starting collection of ${getItemNameByTask(task)}!`);
+      logger.debug(`[${repoId.organisation}/${repoId.name}] Starting collection of ${getItemNameByTask(task)}!`);
     },
     reportRepoDone: (task: Tasks, repoId: RepositoryIdentifier, itemCount: number) => {
       const repoKey = createKeyFromRepoId(repoId);
@@ -96,20 +101,20 @@ const createMigrationStateHandler = (): MigrationStateHandler => {
       taskState.repoCount++; 
 
       const [ elapsedSeconds ] = process.hrtime(taskState.taskStartTime);
-      console.debug(`[${repoId.organisation}/${repoId.name}] finished!`);
-      console.log(`[Intermediate Status] Collected ${taskState.itemCount} ${getItemNameByTask(task)} from ${taskState.repoCount} / ${currentState.overallRepoCount} Repositories. Elapsed time: ${elapsedSeconds} seconds.`);
+      logger.debug(`[${repoId.organisation}/${repoId.name}] finished!`);
+      logger.log(`[Intermediate Status] Collected ${taskState.itemCount} ${getItemNameByTask(task)} from ${taskState.repoCount} / ${currentState.overallRepoCount} Repositories. Elapsed time: ${elapsedSeconds} seconds.`);
     },
     reportTaskDone: (task: Tasks) => {
       const taskState = currentState.taskStates[task]!;
       const [ elapsedSeconds ] = process.hrtime(taskState.taskStartTime);
 
-      console.log('------------')
-      console.log(`COLLECTION FINISHED FOR ${task.toUpperCase()}.`);
-      console.log(`\n\n[Final Status] Collected ${taskState.itemCount} ${getItemNameByTask(task)} from ${taskState.repoCount} / ${currentState.overallRepoCount} Repositories and wrote them to ${taskState.outputCSVPath}. Elapsed time: ${elapsedSeconds} seconds.`);
+      logger.log('------------')
+      logger.log(`COLLECTION FINISHED FOR ${task.toUpperCase()}.`);
+      logger.log(`\n\n[Final Status] Collected ${taskState.itemCount} ${getItemNameByTask(task)} from ${taskState.repoCount} / ${currentState.overallRepoCount} Repositories and wrote them to ${taskState.outputCSVPath}. Elapsed time: ${elapsedSeconds} seconds.`);
     },
     reportScriptDone: () => {
       const [ elapsedSeconds ] = process.hrtime(currentState.scriptStartTime);
-      console.log(`\nScript finished in ${elapsedSeconds} seconds.`);
+      logger.log(`\nScript finished in ${elapsedSeconds} seconds.`);
     }
   }
 };
