@@ -20,7 +20,7 @@ if(!GITHUB_TOKEN) throw new Error(`You have to specifiy a GitHub Token under GIT
 program
   .name('gh-metrics-collector')
   .description('Collects User Activity (Commits, Pull Requests, Acitivies) from GitHub Organisations and Enterprises and puts them into CSVs to create visualizations.')
-  .version('1.0.0')
+  .version('0.0.3')
   .requiredOption('-o, --organisation <organisation>', 'The GitHub Organisation to collect metrics from.')
   .option('-g, --github-server <github-server-url>', 'The GitHub Server to use (without protocol). Defaults to github.com', 'github.com')
   .option('-r, --repository <repository>', 'If this options is provided, metrics will only be collected for that single repository. Good for a test run.')
