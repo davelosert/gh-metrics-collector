@@ -13,7 +13,7 @@
     "build-exe-mac-x64": "nexe -i runtime/index.js -t mac-x64-14.15.3 -o bin/gh-metrics-collector-mac-x64",
     "build-exe-windows-x64": "nexe -i runtime/index.js -t windows-x64-14.15.3 -o bin/gh-metrics-collector-win-x64",
     "start": "tsm src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "TZ=UTC vitest"
   },
   "repository": {
     "type": "git",
@@ -34,7 +34,8 @@
     "nexe": "4.0.0-rc.1",
     "rimraf": "^3.0.2",
     "tsm": "2.2.2",
-    "typescript": "4.7.4"
+    "typescript": "4.7.4",
+    "vitest": "^0.22.0"
   },
   "dependencies": {
     "commander": "9.4.0",
@@ -42,6 +43,6 @@
     "csv": "6.2.0",
     "date-fns": "2.29.1",
     "octokit": "2.0.4",
-    "p-queue": "^7.3.0"
+    "p-queue": "7.3.0"
   }
 }

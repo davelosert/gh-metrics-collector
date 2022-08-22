@@ -2,9 +2,9 @@ import { createCSVStreamTo } from './CSVOutputStream';
 
 type PullRequestCsvRow = {
   createdAt: string;
+  updatedAt: string;
   closedAt?: string;
   mergedAt?: string;
-  updatedAt?: string;
   repository: string;
   organisation: string
 };
