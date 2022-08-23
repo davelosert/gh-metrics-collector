@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { createTestMockPullRequestCSVRow } from '../test/MockPullRequestCSVRow';
 import { createRangeFilter } from './createRangeFilter';
+import { createTestMockPullRequestCSVRow } from '../test/MockPullRequestCSVRow';
+import { describe, it, expect } from 'vitest';
 
 describe('createRangeFiler', () => {
   it('always returns true if no date range is given.', async (): Promise<void> => {

@@ -1,9 +1,10 @@
+import { createRangeFilter } from './createRangeFilter';
 import { DateRange } from './DateRange';
+import { logger } from '../TaskLogger';
+import { postProcessStateHandler } from './PostProcessStateHandler';
+import { pullRequestConfig, PullRequestCsvRow } from '../output/PullRequestCSV';
 import { transform, parse, stringify } from 'csv';
 import * as fs from 'fs';
-import { pullRequestConfig, PullRequestCsvRow } from '../output/PullRequestCSV';
-import { createRangeFilter } from './createRangeFilter';
-import { logger } from '../TaskLogger';
 
 type PRPostProcessArguments = {
   inputCsvPath: string;
@@ -11,18 +12,10 @@ type PRPostProcessArguments = {
   outputCsvPath: string;
 };
 
-type PostProcessState = {
-  rowsHandled: number;
-  rowsFiltered: number;
-};
-
-const postProcessPullRequests = ({ inputCsvPath, dateRange, outputCsvPath }: PRPostProcessArguments) => {
+const postProcessPullRequests = ({dateRange,inputCsvPath, outputCsvPath}: PRPostProcessArguments) => {
   return new Promise((resolve, reject) => {
     const isPRInDateRange = createRangeFilter(dateRange);
-    const state: PostProcessState = {
-      rowsHandled: 0,
-      rowsFiltered: 0
-    }
+    const stateHandler = postProcessStateHandler(inputCsvPath, outputCsvPath);
 
     const inputStream = fs.createReadStream(inputCsvPath);
     const outputStream = fs.createWriteStream(outputCsvPath);
@@ -31,30 +24,26 @@ const postProcessPullRequests = ({ inputCsvPath, dateRange, outputCsvPath }: PRP
 
     const transformer = transform((record: PullRequestCsvRow) => {
       logger.debug(`Handling record ${JSON.stringify(record)}`);
-      state.rowsHandled += 1;
+      stateHandler.reportRowHandled();
       if(isPRInDateRange(record)) {
-        state.rowsFiltered += 1;
+        stateHandler.reportRowFiltered();
         return record;
       }
       return null;
     }); 
 
-    logger.log(`\nSTARTING POSTROCESSING PULL REQUESTS AT ${inputCsvPath}`);
-    logger.log('------------')
-
+    stateHandler.reportTaskStart();
     inputStream
       .pipe(parser)
       .pipe(transformer)
       .pipe(stringifier)
       .pipe(outputStream)
       .on('close', () => {
-        logger.log('------------')
-        logger.log(`PULL REQUEST POSTPROCESSING FINISHED.`);
-        logger.log(`\n\n[Final Status] ${state.rowsFiltered}/${state.rowsHandled} Pull Requests are within the provided range.\nThey have been written to ${outputCsvPath}`);
-        resolve(state);
+        stateHandler.reportTaskDone();
+        resolve(null);
       })
       .on('error', (err) => {
-        logger.error(`Fatal Error during PullRequest Postprocessing: ${err}`);
+        stateHandler.reportError(err);
         reject(err);
       });
   });

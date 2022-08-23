@@ -1,4 +1,4 @@
-import { cleanupTmpDir, createDateCSVName, createHelperDirs, DirHelper } from './helperDirs';
+import { cleanupTmpDir, createDateCSVName, createHelperDirs, DirHelper } from './DirHelper';
 import { program } from 'commander';
 import { createCommitCSVStream } from './output/CommitCSV';
 import { collectGitCommits } from './tasks/collectCommits';

@@ -1,6 +1,5 @@
 import { Octokit } from 'octokit';
 import PQueue from 'p-queue';
-import { DirHelper, createDateCSVName } from '../helperDirs';
 import { CollectionStateHandler } from './CollectionStateHandler';
 import { ProgramOptions } from '../options';
 import { createPullRequestCSVStream } from '../output/PullRequestCSV';

@@ -1,6 +1,6 @@
 import { Octokit } from 'octokit';
 import PQueue from 'p-queue';
-import { createDateCSVName, DirHelper } from '../helperDirs';
+import { createDateCSVName, DirHelper } from '../DirHelper';
 import { CollectionStateHandler } from './CollectionStateHandler';
 import { ProgramOptions } from '../options';
 import { createCommitCSVStream } from '../output/CommitCSV';

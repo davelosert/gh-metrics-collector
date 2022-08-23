@@ -1,6 +1,6 @@
 import { CommitCsvRow } from '../output/CommitCSV';
 import { exec, spawn } from 'child_process';
-import { HELPER_DIRS } from '../helperDirs';
+import { HELPER_DIRS } from '../DirHelper';
 import { promisify } from 'util';
 import { Repository } from '../Repository';
 import { Logger } from '../TaskLogger';
