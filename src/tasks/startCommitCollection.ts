@@ -17,7 +17,7 @@ type CommitCollectionArgs = {
 
 async function startCommitCollection({ octokit, dirHelper, githubToken, stateHandler, options }: CommitCollectionArgs) {
     const csvFileName = createDateCSVName('commits');
-    const csvPath = dirHelper.createTmpFilePath(csvFileName);
+    const csvPath = dirHelper.createOutputFilePath(csvFileName);
     const commitTargetStream = await createCommitCSVStream(csvPath);
     const queue = new PQueue({ concurrency: options.concurrency });
 

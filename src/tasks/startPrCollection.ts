@@ -9,14 +9,12 @@ import { collectPullRequests } from './collectPullRequests';
 
 type StartPRCollectionArgs = {
   octokit: Octokit;
-  dirHelper: DirHelper;
   stateHandler: MigrationStateHandler;
   options: ProgramOptions;
+  csvPath: string;
 };
 
-async function startPrCollection({ octokit, dirHelper, stateHandler, options }: StartPRCollectionArgs) {
-  const csvFileName = createDateCSVName('pullRequests');
-  const csvPath = dirHelper.createTmpFilePath(csvFileName);
+async function startPrCollection({ octokit, stateHandler, options, csvPath }: StartPRCollectionArgs) {
   const prTargetStream = await createPullRequestCSVStream(csvPath);
   const queue = new PQueue({ concurrency: options.concurrency });
   

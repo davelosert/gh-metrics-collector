@@ -2,16 +2,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { format } from 'date-fns';
 
-const tmpDir = path.resolve('.', 'tmp');
+const outputDir = path.resolve('.', 'metrics');
+const tmpDir = path.resolve('.', 'tmp')
 const gitRepoTarget = path.resolve(tmpDir, 'repos');
 
 const HELPER_DIRS = {
-  tmpDir,
+  outputDir,
   gitRepoTarget
 };
 
 interface DirHelper {
-  createTmpFilePath(fileName: string): string;
+  createOutputFilePath(fileName: string): string;
 };
 
 async function createHelperDirs(): Promise<DirHelper> {
@@ -20,12 +21,16 @@ async function createHelperDirs(): Promise<DirHelper> {
   }
   
   return {
-    createTmpFilePath: (fileName: string) => path.resolve(tmpDir, fileName),
+    createOutputFilePath: (fileName: string) => path.resolve(outputDir, fileName),
   }
 }
 
+async function cleanupTmpDir() {
+  await fs.promises.rm(tmpDir);
+};
+
 const dateFormat = 'yyyy-MM-dd_HH-mm-ss';
-function createDateCSVName(csvType: 'commits' | 'pullRequests'): string {
+function createDateCSVName(csvType: string): string {
   const dateString = format(new Date(), dateFormat);
   return `${csvType}_${dateString}.csv`;
 }
@@ -34,7 +39,8 @@ function createDateCSVName(csvType: 'commits' | 'pullRequests'): string {
 export {
   HELPER_DIRS,
   createHelperDirs,
-  createDateCSVName
+  createDateCSVName,
+  cleanupTmpDir
 };
 
 export type {

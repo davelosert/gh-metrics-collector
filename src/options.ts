@@ -3,8 +3,8 @@ type ProgramOptions = {
   organisation: string,
   githubServer: string
   repository?: string,
-  startDateString?: string,
-  endDateString?: string,
+  since?: string,
+  until?: string,
   concurrency: number
   tasks: Tasks[];
   verbose: boolean;
