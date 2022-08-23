@@ -16,7 +16,7 @@ GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector --organisation=<organisation>
 
 You have to provide a `$GITHUB_TOKEN` that has access to the target organisation. For more details, see [Required Permissions of Token](#required-permissions-of-token) below.
 
-This will write some csv-files (see [Produced Data](#produced-data)) to the `tmp` directory relative to where you executed the binary.
+This will write some csv-files (see [Produced Data](#produced-data)) to the `metrics` directory relative to where you executed the binary.
 
 ### Options
 
@@ -72,13 +72,13 @@ read -s GITHUB_TOKEN
 As the data to receive via API Calls can become quite large, the tool will respect the GitHub API Rate Limits for [Cloud](https://docs.github.com/en/developers/apps/building-github-apps/rate-limits-for-github-apps) and [Server](https://docs.github.com/en/enterprise-server@3.5/developers/apps/building-github-apps/rate-limits-for-github-apps). This means it will throttle API Calls as well as pause execution if rate-limits are exceeded until they reset (usually after 1 hour).
 
 > **Note**:
-> Due to the high amount API calls to make, the throttling as well as respecting rate limits, this sciprt might take several hours to complete.
+> Due to the high amount API calls to make, the throttling as well as respecting rate limits, this script might take several hours to complete.
 
 ## Produced Data
 
-Running this script will produce data for `commits` as well as `pull-requests` into 2 files and contents shown below.
+Running this script will produce data for `commits` as well as `pull-requests` into several csv-files with the contents shown below.
 
-You can limit it to either by using the `--tasks` flag, e.g. to only collect `pull-requests`:
+You can limit what is collected by using the `--tasks` flag, e.g. to only collect `pull-requests`:
 
 ```shell
 GITHUB_TOKEN=$GITHUB_TOKEN gh-metrics-collector --tasks prs --organisation my-test-organisation
@@ -103,36 +103,43 @@ commitDate,commitSHA,commitAuthor,repository,organisation
 2022-07-26T11:25:24+02:00,f233688ad9dbbd14454f8781ea46aa91fd4088el,davelosert,mytestrepository,davelosert-org
 ```
 
+The CSV Will be written to `metrics/commits-<CURRENT_DATETIME>.csv`
+
+#### How commit collection works
+
 The logs are taken by cloning every repository without its contents (`git clone --filter=blob:none --no-checkout`) and then using `git log --all` to collect all logs-data.
 
 ### pull-request.csv
 
-> **Warning**
-> This feature currently does not respect the --since and --until options and just fetch all PRs of a repository.
-
-List of all relevant pull-request-dates and the state:
+Contains all pull-requests of all Repositories (or the one specified with `--repository`) of the given Organisation with the following fields:
 
 - createdAt
 - updatedAt
 - closedAt
 - mergedAt
 - *(planned) inactiveAt*
+- Source Organisation
+- Source Repository
+
+There are 2 CSVs created:
+
+- `metrics/pullRequests_all_<CURRENT_DATETIME>.csv`: Contains **all** pull requests in a raw format.
+- `metrics/pullRequests_processed_<CURRENT_DATETIME>.csv`: Only contains pull request that satisify the given `--since` and `--until` dates.
+
+#### How pull request collection works
+
+The pull requests are collected through the [GitHub GraphQL API](https://docs.github.com/en/graphql) in a paginated query and then streamed to the `metrics/pullRequests_all_<CURRENT_DATETIME>.csv` file as an intermediate storage.
+
+Once they are all fetched, a **Post-Process** is performed which filters out all pull requests that do not satisfy the given `--since` and `--until` dates.
+
+This filter checks if at least one of the dates (`createdAt`, `updatedAt`, `closedAt`, `mergedAt`) is between the given date range.
 
 ### Todos
 
-- [x] Implement collecting Pull Requsts
-- [ ] Make Pull Request respect the `--since` and `--until` options (currently fetches everything)
 - [ ] Add an `inactiveAt` field to the prs as this information does not come from the API, but needs to be calculated
-- [x] Implement State Updates and better logging
 - [ ] Provide input Data through JSON (Server baseUrl, output path)
 - [ ] Save Pagination (and other?) state to pick up the migration later `--continue <stateFile>`
 - [ ] Have `--dry-run` - only count the organizations and commit objects (if possible)
 - [ ] Calculate the remaning time (use the response times to create an average and multply with pages remaning)
 - [ ] Allow controlling the concurrency as well as throughput with two variables:
-  - [x] concurrency: How many repositories to query in parallel
   - [ ] throughput: Maximum amount of time to query the API in one second
-
-### PR is counted as becoming inactive for a month when
-
-- updatedAt > currentMonth + 1
-- closedAt / mergedAt === null (still inactive) || > updatedAt + 30
