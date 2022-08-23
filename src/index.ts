@@ -12,6 +12,8 @@ import PQueue from 'p-queue';
 import { addTokenToMask, createTaskLogger, logger, setVerboseLogging } from './TaskLogger';
 import { createMigrationStateHandler, MigrationStateHandler } from './MigrationStateHandler';
 import { RepositoryIdentifier } from './Repository';
+import { startCommitCollection } from './tasks/startCommitCollection';
+import { startPrCollection } from './tasks/startPrCollection';
 
 const { GITHUB_TOKEN } = process.env;
 
@@ -29,7 +31,6 @@ program
   .option('-t, --tasks [tasks...]', 'The different collection tasks you want to run. Possible tasks are "commits" and "prs". Specify multiple by separating them with a space. Default to all tasks.', ['commits', 'prs'] )
   .option('-c, --concurrency <concurrency>', 'The number of concurrent tasks to schedule. Mainly used to speed up things while not overloading the GitHub API.', '5')
   .option('-v, --verbose', 'Enable debug logging output.', false)
-
   .parse(process.argv);
 
 const rawOptions  = program.opts();
@@ -56,70 +57,12 @@ async function start(options: ProgramOptions, githubToken: string) {
     stateHandler.addRepositories(repos);
       
     if(options.tasks.includes('commits')) {
-      await startCommitCollection({ octokit, dirHelper: helperDirs, githubToken, stateHandler });
+      await startCommitCollection({ octokit, dirHelper: helperDirs, githubToken, stateHandler, options });
     }
 
     if(options.tasks.includes('prs')) {
-      await startPrCollection({ octokit, dirHelper: helperDirs, stateHandler });
+      await startPrCollection({ octokit, dirHelper: helperDirs, stateHandler, options });
     }
 
     stateHandler.reportScriptDone();
-}
-
-async function startCommitCollection(
-  { octokit, dirHelper, githubToken, stateHandler }: 
-  { octokit: Octokit; dirHelper: DirHelper; githubToken: string; stateHandler: MigrationStateHandler }) {
-    const csvFileName = createDateCSVName('commits');
-    const csvPath = dirHelper.createTmpFilePath(csvFileName);
-    const commitTargetStream = await createCommitCSVStream(csvPath);
-    const queue = new PQueue({ concurrency: options.concurrency });
-
-    stateHandler.reportTaskStart('commits', csvPath);
-    const preparedFns = stateHandler.getAllTargetRepos().map(repository => {
-        const logger = createTaskLogger(repository);
-        return async () => {
-          stateHandler.reportRepoStart('commits', repository);
-          const { commitsCount } = await collectGitCommits({
-            ...options,
-            repository,
-            githubToken,
-            logger
-          }, commitTargetStream);
-          stateHandler.reportRepoDone('commits', repository, commitsCount);
-        };
-    });
-    queue.addAll(preparedFns);
-
-    await queue.onIdle();
-    stateHandler.reportTaskDone('commits');
-}
-
-async function startPrCollection(
-  { octokit, dirHelper, stateHandler }: 
-  { octokit: Octokit; dirHelper: DirHelper; stateHandler: MigrationStateHandler }) {
-  const csvFileName = createDateCSVName('pullRequests');
-  const csvPath = dirHelper.createTmpFilePath(csvFileName);
-  const prTargetStream = await createPullRequestCSVStream(csvPath);
-  const queue = new PQueue({ concurrency: options.concurrency });
-  
-  stateHandler.reportTaskStart('prs', csvPath)
-
-  const preparedFns = stateHandler.getAllTargetRepos().map(repository => {
-      return async () => {
-        const logger = createTaskLogger(repository);
-        stateHandler.reportRepoStart('prs', repository);
-        const { pullRequestCount } = await collectPullRequests({
-        octokit,
-          organisation: options.organisation,
-          repository,
-          logger
-        }, prTargetStream);
-        stateHandler.reportRepoDone('prs', repository, pullRequestCount);
-      }
-  });
-
-  queue.addAll(preparedFns);
-
-  await queue.onIdle();
-  stateHandler.reportTaskDone('prs');
 }

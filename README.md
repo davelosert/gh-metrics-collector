@@ -123,7 +123,7 @@ List of all relevant pull-request-dates and the state:
 - [x] Implement collecting Pull Requsts
 - [ ] Make Pull Request respect the `--since` and `--until` options (currently fetches everything)
 - [ ] Add an `inactiveAt` field to the prs as this information does not come from the API, but needs to be calculated
-- [ ] Implement State Updates and better logging
+- [x] Implement State Updates and better logging
 - [ ] Provide input Data through JSON (Server baseUrl, output path)
 - [ ] Save Pagination (and other?) state to pick up the migration later `--continue <stateFile>`
 - [ ] Have `--dry-run` - only count the organizations and commit objects (if possible)

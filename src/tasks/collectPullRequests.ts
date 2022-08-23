@@ -68,7 +68,6 @@ const collectPullRequests = async (options: CollectPullRequestOptions, targetStr
               }
               pageInfo {
                 hasNextPage,
-                startCursor,
                 endCursor
               }
             }
