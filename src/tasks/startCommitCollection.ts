@@ -1,7 +1,7 @@
 import { Octokit } from 'octokit';
 import PQueue from 'p-queue';
 import { createDateCSVName, DirHelper } from '../helperDirs';
-import { MigrationStateHandler } from '../MigrationStateHandler';
+import { CollectionStateHandler } from './CollectionStateHandler';
 import { ProgramOptions } from '../options';
 import { createCommitCSVStream } from '../output/CommitCSV';
 import { createTaskLogger } from '../TaskLogger';
@@ -11,7 +11,7 @@ type CommitCollectionArgs = {
   octokit: Octokit;
   dirHelper: DirHelper;
   githubToken: string;
-  stateHandler: MigrationStateHandler;
+  stateHandler: CollectionStateHandler;
   options: ProgramOptions;
 };
 

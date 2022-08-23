@@ -1,7 +1,7 @@
 import { Octokit } from 'octokit';
 import PQueue from 'p-queue';
 import { DirHelper, createDateCSVName } from '../helperDirs';
-import { MigrationStateHandler } from '../MigrationStateHandler';
+import { CollectionStateHandler } from './CollectionStateHandler';
 import { ProgramOptions } from '../options';
 import { createPullRequestCSVStream } from '../output/PullRequestCSV';
 import { createTaskLogger } from '../TaskLogger';
@@ -9,7 +9,7 @@ import { collectPullRequests } from './collectPullRequests';
 
 type StartPRCollectionArgs = {
   octokit: Octokit;
-  stateHandler: MigrationStateHandler;
+  stateHandler: CollectionStateHandler;
   options: ProgramOptions;
   csvPath: string;
 };

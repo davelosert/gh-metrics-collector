@@ -1,8 +1,8 @@
-import { Tasks } from './options';
-import { logger } from './TaskLogger';
-import { RepositoryIdentifier } from './Repository';
+import { Tasks } from '../options';
+import { logger } from '../TaskLogger';
+import { RepositoryIdentifier } from '../Repository';
 
-interface MigrationStateHandler {
+interface CollectionStateHandler {
   addRepositories: (repoIds: RepositoryIdentifier[]) => void;
   getAllTargetRepos: () => RepositoryIdentifier[];
   reportTaskStart: (task: Tasks, outputCSV: string) => void;
@@ -28,14 +28,14 @@ type TaskState = {
 };
 type TasksStates = Partial<Record<Tasks, TaskState>>;
 
-type MigrationState = {
+type CollectionState = {
   scriptStartTime: ProcessHrTimeOutput;
   taskStates: Partial<TasksStates>;
   repoStates: RepoStates; 
   overallRepoCount: number;
 }
 
-const initialState = (repoStates: RepoStates): MigrationState => ({
+const initialState = (repoStates: RepoStates): CollectionState => ({
   scriptStartTime: process.hrtime(),
   taskStates: {},
   repoStates,
@@ -60,8 +60,8 @@ const getItemNameByTask = (task: Tasks): string => {
   return 'Pull Requests'
 }
 
-const createMigrationStateHandler = (): MigrationStateHandler => {
-  let currentState: MigrationState = initialState({});
+const createCollectionStateHandler = (): CollectionStateHandler => {
+  let currentState: CollectionState = initialState({});
 
   return {
     addRepositories: (repoIds: RepositoryIdentifier[]) => {
@@ -120,9 +120,9 @@ const createMigrationStateHandler = (): MigrationStateHandler => {
 };
 
 export {
-  createMigrationStateHandler
+  createCollectionStateHandler
 };
 
 export type {
-  MigrationStateHandler
+  CollectionStateHandler
 };

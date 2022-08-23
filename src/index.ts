@@ -10,7 +10,7 @@ import { collectPullRequests } from './tasks/collectPullRequests';
 import { createPullRequestCSVStream } from './output/PullRequestCSV';
 import PQueue from 'p-queue';
 import { addTokenToMask, createTaskLogger, logger, setVerboseLogging } from './TaskLogger';
-import { createMigrationStateHandler, MigrationStateHandler } from './MigrationStateHandler';
+import { createCollectionStateHandler, CollectionStateHandler } from './tasks/CollectionStateHandler';
 import { RepositoryIdentifier } from './Repository';
 import { startCommitCollection } from './tasks/startCommitCollection';
 import { startPrCollection } from './tasks/startPrCollection';
@@ -43,7 +43,7 @@ async function start(options: ProgramOptions, githubToken: string) {
     setVerboseLogging(options.verbose);
     addTokenToMask(githubToken);
 
-    const stateHandler = createMigrationStateHandler();
+    const stateHandler = createCollectionStateHandler();
 
     const helperDirs = await createHelperDirs();
     const octokit = createOctokit({
