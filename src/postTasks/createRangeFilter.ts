@@ -1,10 +1,7 @@
 import { PullRequestCsvRow } from '../output/PullRequestCSV';
 import { isBefore, isAfter, isEqual } from 'date-fns';
+import { DateRange } from './DateRange';
 
-type DateRange = {
-  since?: Date;
-  until?: Date;
-};
 
 type CompareFunction = (compareDate: Date) => boolean;
 

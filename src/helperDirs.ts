@@ -26,7 +26,7 @@ async function createHelperDirs(): Promise<DirHelper> {
 }
 
 async function cleanupTmpDir() {
-  await fs.promises.rm(tmpDir);
+  await fs.promises.rm(tmpDir, {recursive: true});
 };
 
 const dateFormat = 'yyyy-MM-dd_HH-mm-ss';

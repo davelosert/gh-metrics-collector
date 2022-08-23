@@ -107,10 +107,10 @@ const createMigrationStateHandler = (): MigrationStateHandler => {
     reportTaskDone: (task: Tasks) => {
       const taskState = currentState.taskStates[task]!;
       const [ elapsedSeconds ] = process.hrtime(taskState.taskStartTime);
-
+      logger.log('------------')
+      logger.log(`\n\n[Final Status] Collected ${taskState.itemCount} ${getItemNameByTask(task)} from ${taskState.repoCount} / ${currentState.overallRepoCount} Repositories and wrote them to ${taskState.outputCSVPath}. Elapsed time: ${elapsedSeconds} seconds.`);
       logger.log('------------')
       logger.log(`COLLECTION FINISHED FOR ${task.toUpperCase()}.`);
-      logger.log(`\n\n[Final Status] Collected ${taskState.itemCount} ${getItemNameByTask(task)} from ${taskState.repoCount} / ${currentState.overallRepoCount} Repositories and wrote them to ${taskState.outputCSVPath}. Elapsed time: ${elapsedSeconds} seconds.`);
     },
     reportScriptDone: () => {
       const [ elapsedSeconds ] = process.hrtime(currentState.scriptStartTime);

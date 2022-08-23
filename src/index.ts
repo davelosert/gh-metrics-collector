@@ -1,4 +1,4 @@
-import { createDateCSVName, createHelperDirs, DirHelper } from './helperDirs';
+import { cleanupTmpDir, createDateCSVName, createHelperDirs, DirHelper } from './helperDirs';
 import { program } from 'commander';
 import { createCommitCSVStream } from './output/CommitCSV';
 import { collectGitCommits } from './tasks/collectCommits';
@@ -14,6 +14,7 @@ import { createMigrationStateHandler, MigrationStateHandler } from './MigrationS
 import { RepositoryIdentifier } from './Repository';
 import { startCommitCollection } from './tasks/startCommitCollection';
 import { startPrCollection } from './tasks/startPrCollection';
+import { postProcessPullRequests } from './postTasks/postProcessPullRequests';
 
 const { GITHUB_TOKEN } = process.env;
 
@@ -61,8 +62,21 @@ async function start(options: ProgramOptions, githubToken: string) {
     }
 
     if(options.tasks.includes('prs')) {
-      await startPrCollection({ octokit, dirHelper: helperDirs, stateHandler, options });
+      const csvPath = helperDirs.createOutputFilePath(createDateCSVName('pullRequests_all'));
+      await startPrCollection({ octokit, csvPath, stateHandler, options });
+
+      const processedCsvPath = helperDirs.createOutputFilePath(createDateCSVName('pullRequests_processed'));
+      const dateRange = { 
+        since: options.since ? new Date(options.since) : undefined,
+        until: options.until ? new Date(options.until) : undefined
+      };
+      await postProcessPullRequests({ inputCsvPath: csvPath, outputCsvPath: processedCsvPath, dateRange })
     }
 
     stateHandler.reportScriptDone();
+    await cleanupTmpDir();
 }
+
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught Exception:', err);
+});

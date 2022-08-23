@@ -23,7 +23,8 @@ async function createPullRequestCSVStream(targetPath: string) {
 }
 
 export {
-  createPullRequestCSVStream
+  createPullRequestCSVStream,
+  pullRequestConfig
 };
 
 export type {
