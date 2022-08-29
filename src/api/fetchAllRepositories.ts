@@ -1,5 +1,6 @@
 import { Octokit } from 'octokit';
 import { Repository, RepositoryIdentifier } from '../Repository';
+import { logger } from '../TaskLogger';
 
 type GetAllRepositoriesOptions = {
   octokit: Octokit;
@@ -12,13 +13,16 @@ const fetchAllRepositories = async ({ octokit, organisation}: GetAllRepositories
     per_page: 100,
   });
   
+  const startTime = process.hrtime();
+  
   const repositories: RepositoryIdentifier[] = [];
-  console.log(`Fetching repositories for organisation ${organisation} with pagination...`);
+  logger.log(`Fetching repositories for organisation ${organisation} with pagination...`);
   let page = 0;
 
   for await (const currentPageResponse of repoIterator) {
     page++;
-    console.log(`Read page ${page} with ${currentPageResponse.data.length} repositories.`);
+    const [ elapsedSeconds ] = process.hrtime(startTime);
+    logger.log(`Read page ${page} with ${currentPageResponse.data.length} repositories. Elapsed time: ${elapsedSeconds} seconds.`);
 
     currentPageResponse.data.map(repo => {
       repositories.push({
@@ -28,7 +32,8 @@ const fetchAllRepositories = async ({ octokit, organisation}: GetAllRepositories
     });
   }
 
-  console.log(`All Repositories for organisation ${organisation} fetched!`);
+  const [ elapsedSeconds ] = process.hrtime(startTime);
+  console.log(`All Repositories for organisation ${organisation} fetched in ${elapsedSeconds} seconds.!`);
 
   return repositories;
 }
