@@ -1,15 +1,9 @@
-import { cleanupTmpDir, createDateCSVName, createHelperDirs, DirHelper } from './DirHelper';
+import { cleanupTmpDir, createDateCSVName, createHelperDirs } from './DirHelper';
 import { program } from 'commander';
-import { createCommitCSVStream } from './output/CommitCSV';
-import { collectGitCommits } from './tasks/collectCommits';
 import { ProgramOptions, validateOptions } from './options';
-import { fetchAllRepositories, Repository } from './api/fetchAllRepositories';
+import { fetchAllRepositories } from './api/fetchAllRepositories';
 import { createOctokit } from './api/Octokit';
-import { Octokit } from 'octokit';
-import { collectPullRequests } from './tasks/collectPullRequests';
-import { createPullRequestCSVStream } from './output/PullRequestCSV';
-import PQueue from 'p-queue';
-import { addTokenToMask, createTaskLogger, logger, setVerboseLogging } from './TaskLogger';
+import { addTokenToMask, logger, setVerboseLogging } from './TaskLogger';
 import { createCollectionStateHandler, CollectionStateHandler } from './tasks/CollectionStateHandler';
 import { RepositoryIdentifier } from './Repository';
 import { startCommitCollection } from './tasks/startCommitCollection';

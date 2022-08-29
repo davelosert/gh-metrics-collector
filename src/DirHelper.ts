@@ -16,6 +16,9 @@ interface DirHelper {
 };
 
 async function createHelperDirs(): Promise<DirHelper> {
+  // Remove the tmp dir to cleanup folder from previous runs
+  await cleanupTmpDir();
+
   for(const helperDirPath of Object.values(HELPER_DIRS)) {
     await fs.promises.mkdir(helperDirPath, { recursive: true });
   }
@@ -26,7 +29,7 @@ async function createHelperDirs(): Promise<DirHelper> {
 }
 
 async function cleanupTmpDir() {
-  await fs.promises.rm(tmpDir, {recursive: true});
+  await fs.promises.rm(tmpDir, {recursive: true, force: true});
 };
 
 const dateFormat = 'yyyy-MM-dd_HH-mm-ss';
