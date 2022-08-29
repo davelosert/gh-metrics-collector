@@ -83,7 +83,11 @@ const collectGitCommits = async (options: CollectCommitOptions, targetStream: St
       });
       
       gitLogCmd.on('close', async () => {
-        await fs.promises.rm(repoPath, { recursive: true });
+        try {
+          await fs.promises.rm(repoPath, { recursive: true, force: true });
+        } catch (err: any) {
+          logger.warn(`Error while removing repository at path ${repoPath}: ${err.message}.\nYou might have to remove this manually.`); 
+        }
         resolve(collectCommitResult);
       });
     });
