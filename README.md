@@ -3,7 +3,7 @@
 > **Warning**
 > This project is still a work in progress and is not production ready yet!
 
-Collect Github Committer- and Pull-Requests Metrics for entire GitHub Organisations and put them into a CSV.
+Collect GitHub Committer- and Pull-Requests Metrics for entire GitHub Organisations and put them into a CSV.
 The metrics can then be put into PowerBI or Excel to produce some visualization to show the GitHub Activity of an enterprise or organisation.
 
 ## Usage
